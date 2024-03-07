@@ -13,7 +13,7 @@ import os
 import sys
 import textwrap
 from collections import namedtuple
-from pathlib import Path
+from pathlib import Path, PurePath
 
 ColorCodes = namedtuple('ColorCodes', ['PURPLE', 'CYAN', 'DARKCYAN',
                                        'BLUE', 'GREEN', 'YELLOW',
@@ -266,8 +266,8 @@ def write_csv(output, elements, data_needed):
     """
     data  = [{k: each[k] for k in data_needed} for each in elements]
 
-    fname = os.path.join(Path(__file__).parents[1], output + '.csv')
-    header = data_needed.keys()
+    """
+    fname = os.path.join(Path(__file__).parents[1], PurePath(output).name)
     with open(fname, 'w', newline='', encoding="utf8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=header)
         writer.writeheader()
@@ -285,7 +285,11 @@ def write_json(output, elements, data_needed):
     """
     data  = [{k: each[k] for k in data_needed} for each in elements]
 
-    fname = os.path.join(Path(__file__).parents[1], output + '.json')
+        data: The data to be serialized into JSON. Can be any data
+        type that is supported by the json.dump() function.
+
+    """
+    fname = os.path.join(Path(__file__).parents[1], PurePath(output).name)
     with open(fname, 'w', encoding="utf8") as jsonfile:
         json.dump(data, jsonfile, indent=4)
 
