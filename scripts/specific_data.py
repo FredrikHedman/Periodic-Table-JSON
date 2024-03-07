@@ -21,9 +21,9 @@ ColorCodes = namedtuple('ColorCodes', ['PURPLE', 'CYAN', 'DARKCYAN',
                                        'END',])
 
 color_code = ColorCodes(PURPLE='\033[95m', CYAN='\033[96m', DARKCYAN='\033[36m',
-                         BLUE='\033[94m', GREEN='\033[92m', YELLOW='\033[93m',
-                         RED='\033[91m', BOLD='\033[1m', UNDERLINE='\033[4m',
-                         END='\033[0m',)
+                        BLUE='\033[94m', GREEN='\033[92m', YELLOW='\033[93m',
+                        RED='\033[91m', BOLD='\033[1m', UNDERLINE='\033[4m',
+                        END='\033[0m',)
 
 # pylint: disable=missing-function-docstring
 def create_commandeline_parser(default_file):
