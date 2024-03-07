@@ -283,18 +283,12 @@ def write_json(output, elements, data_needed):
         elements (list): A list of dictionaries with element data.
         data_needed (dict): A dict indicating which keys to write.
     """
-    with open(os.path.join(Path(__file__).parents[1], output + '.json'),
-              'w', encoding="utf8") as file:
-        elem_to_write = []
+    data  = [{k: each[k] for k in data_needed} for each in elements]
 
-        for element in elements:
-            elmnt = {}
-            for key in data_needed:
-                if data_needed[key]:
-                    elmnt[key] = element[key]
-            elem_to_write.append(elmnt)
-        file.write(json.dumps(elem_to_write, indent=4))
-        file.write('\n')
+    fname = os.path.join(Path(__file__).parents[1], output + '.json')
+    with open(fname, 'w', encoding="utf8") as jsonfile:
+        json.dump(data, jsonfile, indent=4)
+
 
 
 # pylint: disable=missing-function-docstring
