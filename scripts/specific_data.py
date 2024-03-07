@@ -6,13 +6,14 @@ Use the --help for options and examples.
 
 """
 
-import sys
-import os
 import argparse
-import textwrap
+import csv
 import json
-from pathlib import Path
+import os
+import sys
+import textwrap
 from collections import namedtuple
+from pathlib import Path
 
 ColorCodes = namedtuple('ColorCodes', ['PURPLE', 'CYAN', 'DARKCYAN',
                                        'BLUE', 'GREEN', 'YELLOW',
@@ -250,28 +251,27 @@ def save2file(args, elements, data_needed, default_file):
 
 
 def write_csv(output, elements, data_needed):
-    """
-    Write selected data from elements to a CSV file.
+    """Write selected data from elements to a CSV file using UTF8
+    encoding.
 
     Parameters:
         output (str): The base name of the output file.
         elements (list): A list of dictionaries with element data.
         data_needed (dict): A dict indicating which keys to include.
+
+    Note: the newline='' tells the `open` function not to translate
+    newline characters in any special way.  The csv module ensures
+    data is written correctly with respect to newline characters.
+
     """
-    with open(os.path.join(Path(__file__).parents[1], output + '.csv'),
-              'w', encoding="utf8") as file:
-        elem_to_write = []
-        elem_to_write.append(','.join(data_needed.keys()))
-        for element in elements:
-            elmnt = ""
-            for key in data_needed:
-                if data_needed[key]:
-                    elmnt += str(element[key]) + ','
-            if elmnt[-1] == ',':
-                elmnt = elmnt[:-1]
-            elem_to_write.append(elmnt)
-        file.write("\n".join(elem_to_write))
-        file.write('\n')
+    data  = [{k: each[k] for k in data_needed} for each in elements]
+
+    fname = os.path.join(Path(__file__).parents[1], output + '.csv')
+    header = data_needed.keys()
+    with open(fname, 'w', newline='', encoding="utf8") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=header)
+        writer.writeheader()
+        writer.writerows(data)
 
 
 def write_json(output, elements, data_needed):
