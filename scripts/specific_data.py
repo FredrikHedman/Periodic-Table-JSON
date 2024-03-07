@@ -228,51 +228,70 @@ def parse_interactive(data_needed, keys):
 
 
 def save2file(args, elements, data_needed, default_file):
-    """
-    Save elements to file(s) in JSON and/or CSV format based on args.
+    """Filter data from `elements` based on `data_needed`. Save to file `args.output`.
 
-    This function writes the specified elements to a file or files, using
-    JSON and/or CSV formats.
+    The function supports saving in JSON or CSV format. If
+    `args.output` equals `default_file`, it saves in both formats
+    using `default_file` as the base name. Otherwise, it saves in the
+    format specified in `args.output`. Only .json and .csv extensions
+    are supported.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Contains 'output' attribute specifying the output filename or path.
+    elements : list of dicts
+        Data to be filtered and saved.
+    data_needed : dict
+        Specifies keys to include from `elements`.
+    default_file : str
+        Default filename if `args.output` is not specified or matches `default_file`.
+
+    Raises
+    ------
+    ValueError
+        If `args.output` has an unsupported file extension (.json or .csv only).
+
+    """
+    def selected_from(elements, data_needed):
+        data  = [{k: each[k] for k in data_needed} for each in elements]
+        header = data_needed.keys()
+        return data, header
+
+    data, header = selected_from(elements, data_needed)
+
+    # Command line with --output or just --output
+    if args.output == default_file:
+        write_json(default_file + '.json', data)
+        write_csv(default_file + '.csv', data, header)
+        return
+
+    # Command line with --output FILENAME
+    filename = args.output
+    if not filename.endswith(('.json', '.JSON', '.csv', '.CSV')):
+        raise ValueError("Unsupported file extension. Enter a .json or .csv file.")
+
+    if filename.lower().endswith('.json'):
+        write_json(filename, data)
+    if filename.lower().endswith('.csv'):
+        write_csv(filename, data, header)
+
+
+def write_csv(output, data, header):
+    """Writes data to a CSV file with the specified header.
+
+    The file is saved in the parent directory of the script's
+    location.
 
     Parameters:
-        args: An object containing command line arguments, including 'output'
-              which specifies the output file name and format.
-        elements (list): A list of dictionaries, each representing an element
-                         with data to be saved.
-        data_needed (dict): A dictionary specifying which data from elements
-                            should be included in the output file(s).
-        default_file (str): The default file name to use if no output file is
-                            specified or if the specified file is the default.
-    """
-    if not args.output or args.output == default_file:
-        # Use default and write to both csv and json files.
-        write_json(default_file, elements, data_needed)
-        write_csv(default_file, elements, data_needed)
-    else:
-        # Write to provided file name.
-        if ('json' in args.output.lower()) or ('csv' in args.output.lower()):
-            output = args.output.replace('.json', '').replace('.csv', '')
-        if 'json' in args.output.lower():
-            write_json(output, elements, data_needed)
-        if 'csv' in args.output.lower():
-            write_csv(output, elements, data_needed)
 
+        output (str): The base name for the output CSV file.
 
-def write_csv(output, elements, data_needed):
-    """Write selected data from elements to a CSV file using UTF8
-    encoding.
+        data (list of dict): A list of dictionaries containing the
+        data to be written.
 
-    Parameters:
-        output (str): The base name of the output file.
-        elements (list): A list of dictionaries with element data.
-        data_needed (dict): A dict indicating which keys to include.
-
-    Note: the newline='' tells the `open` function not to translate
-    newline characters in any special way.  The csv module ensures
-    data is written correctly with respect to newline characters.
-
-    """
-    data  = [{k: each[k] for k in data_needed} for each in elements]
+        header (list of str): A list of strings representing the
+        column headers for the CSV file.
 
     """
     fname = os.path.join(Path(__file__).parents[1], PurePath(output).name)
@@ -282,16 +301,14 @@ def write_csv(output, elements, data_needed):
         writer.writerows(data)
 
 
-def write_json(output, elements, data_needed):
-    """
-    Write selected data from elements to a JSON file.
+def write_json(output, data):
+    """Writes data to a JSON file at a specified output path.
+
+    The file is saved in the parent directory of the script's location.
 
     Parameters:
-        output (str): The base name of the output file.
-        elements (list): A list of dictionaries with element data.
-        data_needed (dict): A dict indicating which keys to write.
-    """
-    data  = [{k: each[k] for k in data_needed} for each in elements]
+        output (str): The base name for the output JSON file. The
+        '.json' extension should be included in the name.
 
         data: The data to be serialized into JSON. Can be any data
         type that is supported by the json.dump() function.
@@ -303,7 +320,6 @@ def write_json(output, elements, data_needed):
 
 
 # pylint: disable=missing-function-docstring
-
 def main():
     def validate(args):
         # Command line with no --output or just --output
