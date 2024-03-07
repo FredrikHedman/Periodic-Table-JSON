@@ -268,7 +268,7 @@ def save2file(args, elements, data_needed, default_file):
 
     # Command line with --output FILENAME
     filename = args.output
-    if not filename.endswith(('.json', '.JSON', '.csv', '.CSV')):
+    if not filename.lower().endswith(('.json', '.csv')):
         raise ValueError("Unsupported file extension. Enter a .json or .csv file.")
 
     if filename.lower().endswith('.json'):
@@ -325,7 +325,7 @@ def main():
         # Command line with no --output or just --output
         if args.output == default_file:
             pass
-        elif not args.output.endswith(('.json', '.JSON', '.csv', '.CSV')):
+        elif not args.output.lower().endswith(('.json', '.csv')):
             raise ValueError("Unsupported file extension. Enter a .json or .csv file.")
 
     default_file = 'SpecificData'
