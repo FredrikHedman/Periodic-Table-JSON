@@ -67,7 +67,8 @@ def create_commandeline_parser(default_file):
     parser.add_argument('--interactive', action="store_true",
                         help='whether to interactively select data')
 
-    parser.add_argument('--output', metavar='FILENAME', nargs='?', const=default_file, default='',
+    parser.add_argument('--output', metavar='FILENAME', nargs='?',
+                        const=default_file, default=default_file,
                         help=f'where to output the data (default: {default_file}.{{json,csv}})')
     return parser
 
@@ -301,13 +302,21 @@ def write_json(output, elements, data_needed):
         json.dump(data, jsonfile, indent=4)
 
 
-
 # pylint: disable=missing-function-docstring
+
 def main():
+    def validate(args):
+        # Command line with no --output or just --output
+        if args.output == default_file:
+            pass
+        elif not args.output.endswith(('.json', '.JSON', '.csv', '.CSV')):
+            raise ValueError("Unsupported file extension. Enter a .json or .csv file.")
+
     default_file = 'SpecificData'
     parser = create_commandeline_parser(default_file)
-
     args = parser.parse_args()
+    validate(args)
+
     elements, keys = read_periodic_table()
 
     data_needed = {}
@@ -318,8 +327,13 @@ def main():
     if data_needed:
         save2file(args, elements, data_needed, default_file)
     else:
-        print(color_code.RED + 'No properties selected.' + color_code.END)
+        pwclr("No properties selected.")
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+        sys.exit(0)
+    except ValueError as err:
+        pwclr(f"ERROR: {err}")
+        sys.exit(1)
